@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>도서 검색</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <form th:action="@{/}" method="get" class="row g-2 mb-4">
+
+        <div class="col-md-2">
+            <select id="searchType" name="searchType" class="form-select">
+                <option value="keyword" th:selected="${request.searchType() == null or request.searchType().name() == 'KEYWORD'}">키워드 검색</option>
+                <option value="isbn" th:selected="${request.searchType() != null and request.searchType().name() == 'ISBN'}">ISBN 검색</option>
+                <option value="vector" th:selected="${request.searchType() != null and request.searchType().name() == 'VECTOR'}">Vector 검색</option>
+                <option value="hybrid" th:selected="${request.searchType() != null and request.searchType().name() == 'HYBRID'}">Hybrid 검색</option>
+                <option value="rag" th:selected="${request.searchType() != null and request.searchType().name() == 'RAG'}">RAG 검색</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <input type="text" id="keywordInput" name="keyword" class="form-control" placeholder="검색어를 입력하세요" th:value="${param.keyword}">
+        </div>
+
+        <div class="col-md-4">
+            <input type="text" id="isbnInput" name="isbn" class="form-control" placeholder="ISBN 입력" th:value="${param.isbn}">
+        </div>
+
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">
+                검색
+            </button>
+        </div>
+
+    </form>
+
+    <div id="loading" class="alert alert-primary-mt-3" style="display: none">
+        AI가 최적의 도서를 찾고 답변을 생성 중입니다...
+    </div>
+
+    <!-- AI 추천 도서   -->
+    <div class="card mb-3 border-0" th:if="${searchType != null and searchType.name() == 'RAG'}">
+
+        <div class="card-body p-0 mt-1">
+            <div class="ms-3">
+                <div class="row mb-1">
+                    <div class="col">
+                        <h3>AI 추천 답변</h3>
+                    </div>
+                </div>
+                <div class="row mb-1">
+                    <div class="col-auto badge text-primary bg-primary-subtle me-1">
+                        AI 추천 %
+                    </div>
+                    <div class="col-auto badge bg-success-subtle text-success me-1">
+                        RRF
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-group list-group-flush">
+                <div th:each="book : ${books}" class="list-group-item border-0  bg-transparent">
+                    <div class="row align-items-center">
+
+                        <!-- 이미지 -->
+                        <div class="col-2 d-flex justify-content-center">
+                            <a th:href="@{/books/{id}(id=${book.id})}">
+                                <img th:src="${book.imageUrl}"
+                                     alt="도서 이미지"
+                                     class="book-img rounded"
+                                     style="width:80px; height:100px;">
+                            </a>
+                        </div>
+
+                        <div class="col-2 small text-center d-flex flex-column">
+                            <div>연관성</div>
+
+                            <span class="badge p-2 bg-primary text-white mb-1">
+                                <span th:text="${book.relevant}"></span>%
+                            </span>
+
+                            <span class="badge p-2 bg-success-subtle text-success">
+                                RRF: <span th:text="${#numbers.formatDecimal(book.rrfScore, 1, 4)}"></span>
+                            </span>
+                        </div>
+
+                        <!-- 내용 -->
+                        <div class="col-7">
+                            <div class="fw-bold" th:text="${book.title}"></div>
+                            <div class="text-muted small mt-1">
+                                추천사유: <span th:text="${book.content}"></span>
+                            </div>
+
+                            <div class="mt-2 small d-flex gap-3">
+                                <div>
+                                    출판사: <span th:text="${book.publisherName}"></span>
+                                </div>
+                                <div>
+                                    ISBN: <span th:text="${book.isbn}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 상세보기 -->
+                        <div class="col-1 d-flex justify-content-center">
+                            <a th:href="@{/books/{id}(id=${book.id})}"
+                               class="btn btn-sm btn-outline-primary">
+                                상세보기
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="alert alert-info"
+         th:if="${page != null and page.totalElements > 0}">
+
+        총
+        <strong th:text="${page.totalElements}">0</strong>
+        권의 도서가 검색되었습니다.
+
+        <span class="mx-2">|</span>
+
+        검색 소요 시간
+        <strong th:text="${searchTime}">0.0</strong>
+        초
+
+    </div>
+
+    <!-- 검색 결과 목록 -->
+    <div class="book-list">
+        <div class="alert alert-warning" th:if="${books == null or books.isEmpty()}">검색 결과가 없습니다.</div>
+
+        <div class="card mb-3 shadow-sm" th:each="book : ${books}"
+            th:onclick="|location.href='@{/books/{id}(id=${book.id})}'|"
+            style="cursor: pointer">
+
+            <div class="row g-0">
+
+                <div class="col-md-2 text-center p-3">
+                    <img th:src="${book.imageUrl}"
+                         alt="도서 이미지"
+                         class="img-fluid rounded">
+                </div>
+
+                <div class="col-md-10">
+                    <div class="card-body">
+
+                        <h3>
+                            <span th:text="${book.title}">제목</span>
+                            <span th:if="${book.volumeName} != null"
+                                  th:text="' ' + ${book.volumeName}"> vol</span>
+                            <span th:if="${request.searchType() != null and request.searchType().name() == 'VECTOR'}">
+                                <small class="badge bg-primary">
+                                    유사도: <span th:text="${book.getSimilarityPercent()}">95%</span>
+                                </small>
+                            </span>
+                            <span th:if="${book.rrfScore != null}">
+                                <small class="badge bg-warning text-dark">
+                                    RRF: <span th:text="${#numbers.formatDecimal(book.rrfScore, 1, 4)}">0.0325</span>
+                                </small>
+                            </span>
+                        </h3>
+
+                        <p class="card-text mb-1">
+                            <strong>저자:</strong>
+                            <span th:text="${book.author}"></span>
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>출판사:</strong>
+                            <span th:text="${book.publisherName}"></span>
+                        </p>
+
+                        <p class="card-text mb-1">
+                            <strong>가격:</strong>
+                            <span th:text="${book.price}"></span>
+                        </p>
+
+                        <p class="card-text">
+                            <strong>ISBN:</strong>
+                            <span th:text="${book.isbn}"></span>
+                        </p>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 페이징 -->
+    <nav th:if="${page != null and page.totalPages > 1}"
+         th:with="start=${(page.number / 10) * 10},
+              end=${(start + 9 < page.totalPages ? start + 9 : page.totalPages - 1)}">
+        <ul class="pagination justify-content-center">
+
+            <!-- 이전 -->
+            <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/(page=${page.number - 1},
+                    keyword=${param.keyword},
+                    isbn=${param.isbn},
+                    searchType=${param.searchType})}">
+                    이전
+                </a>
+            </li>
+
+            <!-- 번호 -->
+            <li class="page-item"
+                th:each="pageNum : ${#numbers.sequence(start, end)}"
+                th:classappend="${pageNum == page.number} ? 'active'">
+
+                <a class="page-link"
+                   th:text="${pageNum + 1}"
+                   th:href="@{/(page=${pageNum},
+                    keyword=${param.keyword},
+                    isbn=${param.isbn},
+                    searchType=${param.searchType})}">
+                </a>
+            </li>
+
+            <!-- 다음 -->
+            <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/(page=${page.number + 1},
+                    keyword=${param.keyword},
+                    isbn=${param.isbn},
+                    searchType=${param.searchType})}">
+                    다음
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
+
+<th:block layout:fragment="script">
+    <script>
+        const searchType = document.getElementById('searchType');
+        const keywordInput = document.getElementById('keywordInput');
+        const isbnInput = document.getElementById('isbnInput');
+
+        const form = document.querySelector('form');
+        const loading = document.getElementById('loading');
+
+        function updateInputState() {
+            if (searchType.value === 'isbn') {
+                keywordInput.disabled = true;
+                isbnInput.disabled = false;
+            } else {
+                keywordInput.disabled = false;
+                isbnInput.disabled = true;
+            }
+        }
+
+        searchType.addEventListener('change', updateInputState);
+
+        form.addEventListener('submit', function() {
+            loading.style.display = 'block';
+        });
+
+        updateInputState();
+    </script>
+</th:block>
+</body>
+</html>

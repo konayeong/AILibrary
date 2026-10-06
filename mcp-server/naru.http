@@ -1,0 +1,5 @@
+#GET http://data4library.kr/api/srchBooks?authKey=d3dfb13ee902c85f8c317b8c3f31d8f95c661f7c4cb028be9099e64686539521&pageSize=3&author=한강&format=json
+
+#GET http://data4library.kr/api/libSrch?authKey=d3dfb13ee902c85f8c317b8c3f31d8f95c661f7c4cb028be9099e64686539521&format=json&libCode=148002
+
+#GET http://data4library.kr/api/bookExist?authKey=d3dfb13ee902c85f8c317b8c3f31d8f95c661f7c4cb028be9099e64686539521&format=json&libCode=129224&isbn13=9788936433598

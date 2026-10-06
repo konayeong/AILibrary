@@ -1,0 +1,48 @@
+# Build output
+target/
+**/target/
+build/
+**/build/
+
+# Maven wrapper binary
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE settings
+.idea/
+**/.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.sts4-cache
+.apt_generated/
+.vscode/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+application-local.yml
+application-local.yaml
+application-local.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and local data
+*.log
+logs/
+**/logs/
+
+# Test / coverage output
+*.class
+out/
+coverage/

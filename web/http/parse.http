@@ -1,0 +1,25 @@
+### 파싱후 db저장
+POST http://localhost:8080/admin/init/books
+
+### KEYWORD 검색
+GET http://localhost:8080/?keyword=스프링&searchType=KEYWORD
+
+###
+
+### ISBN 검색
+GET http://localhost:8080/?isbn=9788980782970&searchType=ISBN
+
+###
+
+### VECTOR 검색
+GET http://localhost:8080/?keyword=스프링&searchType=VECTOR
+
+###
+
+### HYBRID 검색
+GET http://localhost:8080/?keyword=스프링&searchType=HYBRID
+
+###
+
+### RAG 검색
+GET http://localhost:8080/?keyword=스프링&searchType=RAG
